@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- **Wrong speaker when the real speaker's turn was fragmented.** A segment was
+  given to the single turn with the largest overlap, so a speaker who said
+  3.5s of a 5s line in three diarizer fragments (1.2s each) lost to someone
+  who interjected for 1.3s at the end. Overlap is now summed per speaker
+  (overlapping turns of one speaker unioned, not double-counted), and the
+  `tolerance` bar is judged on that total.
+
 ## 0.1.0 — 2026-07-20
 
 Initial release. Extracted from reel-scout's `reel_scout/diarize/` so arkiv,

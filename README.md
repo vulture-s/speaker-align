@@ -40,8 +40,9 @@ place instead of splitting it between a config object and ambient environment.
 
 ## How a label is decided
 
-Each transcript segment goes to whichever speaker turn overlaps it most, but only
-when the winning overlap is convincing:
+Each transcript segment goes to whichever speaker overlaps it most — summed over
+that speaker's turns, since a diarizer splits one person's speech at short
+pauses — but only when the winning overlap is convincing:
 
 * at least `tolerance` seconds (default `0.5`), **or**
 * any overlap at all, when the segment is shorter than `tolerance * 2`
