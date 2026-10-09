@@ -106,3 +106,37 @@ def test_turn_count_skips_unknown_instead_of_counting_it_as_a_change():
     # One unlabelled line inside a single answer must not read as two turns.
     segments = [{"speaker": "A"}, {"speaker": UNKNOWN_SPEAKER}, {"speaker": "A"}]
     assert speaker_turn_count(segments) == 0
+
+
+def test_fragmented_speaker_beats_a_longer_single_turn():
+    # pyannote splits one person's speech at short pauses. A speaks 3.5s of
+    # this 5s line in three turns (1.2 + 1.2 + 1.1); B speaks 1.3s at the end.
+    # Judged turn-by-turn, B's single 1.3s turn "wins" -> wrong camera.
+    turns = [
+        SpeakerSegment("A", 0.0, 1.2),
+        SpeakerSegment("A", 1.3, 2.5),
+        SpeakerSegment("A", 2.6, 3.7),
+        SpeakerSegment("B", 3.7, 5.0),
+    ]
+    out = align_speakers_to_transcript(turns, [seg(0.0, 5.0)])
+    assert out[0]["speaker"] == "A"
+
+
+def test_tolerance_is_judged_on_the_speakers_total_overlap():
+    # Two 0.3s fragments of the same speaker on a long segment: neither alone
+    # reaches 0.5s, together they do.
+    turns = [SpeakerSegment("A", 1.0, 1.3), SpeakerSegment("A", 2.0, 2.3)]
+    out = align_speakers_to_transcript(turns, [seg(0.0, 5.0)], tolerance=0.5)
+    assert out[0]["speaker"] == "A"
+
+
+def test_overlapping_turns_of_one_speaker_are_not_double_counted():
+    # Duplicate/overlapping turns for A must count once (0-2s = 2s), so B's
+    # 3s still wins.
+    turns = [
+        SpeakerSegment("A", 0.0, 2.0),
+        SpeakerSegment("A", 0.0, 2.0),
+        SpeakerSegment("B", 2.0, 5.0),
+    ]
+    out = align_speakers_to_transcript(turns, [seg(0.0, 5.0)])
+    assert out[0]["speaker"] == "B"

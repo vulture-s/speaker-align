@@ -27,8 +27,10 @@ def align_speakers_to_transcript(
 ) -> List[Dict]:
     """Return a copy of ``transcript_segments`` with a ``speaker`` key added.
 
-    Each transcript segment is attributed to whichever speaker turn overlaps it
-    most. The label is only assigned when the winning overlap is convincing:
+    Each transcript segment is attributed to whichever speaker overlaps it most,
+    summing that speaker's turns (a diarizer fragments one person's speech at
+    short pauses). The label is only assigned when the winning overlap is
+    convincing:
 
       * at least ``tolerance`` seconds of overlap, OR
       * any overlap at all, when the segment is shorter than ``tolerance * 2``
@@ -50,11 +52,12 @@ def align_speakers_to_transcript(
 
         best_speaker = UNKNOWN_SPEAKER
         best_overlap = 0.0
-        for turn in speaker_segments:
-            overlap = min(seg_end, turn.end_sec) - max(seg_start, turn.start_sec)
+        for speaker, overlap in _overlap_by_speaker(
+            speaker_segments, seg_start, seg_end
+        ):
             if overlap > best_overlap:
                 best_overlap = overlap
-                best_speaker = turn.speaker
+                best_speaker = speaker
 
         is_short = (seg_end - seg_start) < tolerance * 2
         if best_overlap >= tolerance or (best_overlap > 0 and is_short):
@@ -64,6 +67,42 @@ def align_speakers_to_transcript(
         aligned.append(out)
 
     return aligned
+
+
+def _overlap_by_speaker(speaker_segments, seg_start, seg_end):
+    """[(speaker, seconds of overlap)] in first-seen order.
+
+    Summed per speaker, not judged turn by turn: diarizers split one person's
+    speech at short pauses, and a speaker who talks through three 1.2s
+    fragments of a line said more of it than one who interjects for 1.3s.
+    Overlapping turns of the same speaker are unioned so they count once.
+    """
+    intervals = {}  # type: Dict[str, List[List[float]]]
+    order = []  # type: List[str]
+    for turn in speaker_segments:
+        start = max(seg_start, turn.start_sec)
+        end = min(seg_end, turn.end_sec)
+        if end <= start:
+            continue
+        if turn.speaker not in intervals:
+            intervals[turn.speaker] = []
+            order.append(turn.speaker)
+        intervals[turn.speaker].append([start, end])
+
+    totals = []
+    for speaker in order:
+        spans = sorted(intervals[speaker])
+        total = 0.0
+        cur_start, cur_end = spans[0]
+        for start, end in spans[1:]:
+            if start <= cur_end:
+                cur_end = max(cur_end, end)
+            else:
+                total += cur_end - cur_start
+                cur_start, cur_end = start, end
+        total += cur_end - cur_start
+        totals.append((speaker, total))
+    return totals
 
 
 def align_segments_json(
