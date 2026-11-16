@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.1 — 2026-11-16
 
 ### Fixed
 - **Wrong speaker when the real speaker's turn was fragmented.** A segment was
