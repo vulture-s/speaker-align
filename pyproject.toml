@@ -36,7 +36,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-pyannote = ["pyannote.audio>=3.1"]
+pyannote = ["pyannote.audio>=4.0"]
 dev = ["pytest>=7.0"]
 
 [project.urls]

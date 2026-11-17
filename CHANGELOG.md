@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.2.0 — 2026-11-17
+
+### Changed
+- **Default pipeline is now `pyannote/speaker-diarization-community-1`**
+  (was `speaker-diarization-3.1`); the `[pyannote]` extra now needs
+  `pyannote.audio>=4.0`. On a 69-minute, 10-person single-mic meeting, 3.1
+  left to pick the count found 5 clusters, one holding 56% of the talk time
+  (several people merged); community-1 found 7, and with the count given, 32
+  of 40 hand-checked samples were one person matching their cluster's
+  majority. 3.1 is still reachable as `LEGACY_MODEL`.
+
+### Added
+- `diarize()` takes `num_speakers` / `min_speakers` / `max_speakers` and
+  forwards only the ones given.
+- `audio_path` may be a `{"waveform", "sample_rate"}` dict, passed through to
+  pyannote untouched — the way around pyannote 4's torchcodec decoder when its
+  FFmpeg libraries will not load (seen on Windows).
+
+### Fixed
+- Works with pyannote.audio 4: `token=` instead of the removed
+  `use_auth_token=` (falls back for 3.x), and the `DiarizeOutput` wrapper is
+  unwrapped before reading tracks.
+
 ## 0.1.1 — 2026-11-16
 
 ### Fixed

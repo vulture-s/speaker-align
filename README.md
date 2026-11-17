@@ -31,8 +31,10 @@ pip install speaker-align                  # alignment only
 pip install 'speaker-align[pyannote]'      # + local diarization
 ```
 
-pyannote needs a Hugging Face token for
-[speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1).
+pyannote needs a Hugging Face token, and the account must have accepted the
+terms on [speaker-diarization-community-1](https://huggingface.co/pyannote/speaker-diarization-community-1)
+(the default since 0.2.0; `pyannote.audio>=4`) — a token without that gets a
+403. `LEGACY_MODEL` (`speaker-diarization-3.1`) is still available.
 Pass it as `auth_token=`, or set one of `SPEAKER_ALIGN_AUTH_TOKEN`,
 `PYANNOTE_AUTH_TOKEN`, `HUGGINGFACE_TOKEN`. Prefer passing it explicitly when
 embedding this in an application — it keeps that application's config in one
