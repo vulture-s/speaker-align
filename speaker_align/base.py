@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import abc
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Optional
 
 
 @dataclass
@@ -32,5 +32,11 @@ class BaseDiarizer(abc.ABC):
     """Implement this to add a backend; see ``pyannote.PyannoteDiarizer``."""
 
     @abc.abstractmethod
-    def diarize(self, audio_path: str) -> DiarizationResult:
+    def diarize(
+        self,
+        audio_path: str,
+        num_speakers: Optional[int] = None,
+        min_speakers: Optional[int] = None,
+        max_speakers: Optional[int] = None,
+    ) -> DiarizationResult:
         ...
